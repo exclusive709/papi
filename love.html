@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pour toi… 💌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Lora:ital@1&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --ink:    #1c1018;
+  --rose:   #c8718a;
+  --blush:  #e8b4c0;
+  --ivory:  #faf6f2;
+  --gold:   #c9a96e;
+  --mist:   rgba(200,113,138,0.12);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+/* ── Grain overlay ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 180px;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.6;
+}
+
+/* ── Radial vignette ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 40%, transparent 30%, rgba(12,6,10,0.75) 100%);
+  pointer-events: none;
+  z-index: 99;
+}
+
+/* ── Canvas ── */
+#canvas {
+  position: fixed; inset: 0;
+  z-index: 1;
+}
+
+/* ── Centre text ── */
+#center {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  gap: 18px;
+  pointer-events: none;
+}
+
+.greeting {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: clamp(13px, 2.2vw, 17px);
+  color: var(--gold);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeIn 2s 0.5s ease forwards;
+}
+
+.main-phrase {
+  font-size: clamp(32px, 6vw, 62px);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ivory);
+  text-align: center;
+  line-height: 1.2;
+  opacity: 0;
+  animation: fadeIn 2s 1.2s ease forwards;
+  padding: 0 20px;
+}
+
+.main-phrase span { color: var(--blush); }
+
+.divider {
+  width: 60px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0;
+  animation: fadeIn 2s 2s ease forwards;
+}
+
+.sub-phrase {
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--blush);
+  text-align: center;
+  opacity: 0;
+  animation: fadeIn 2s 2.5s ease forwards;
+  padding: 0 30px;
+  max-width: 420px;
+  line-height: 1.9;
+}
+
+#piano-btn {
+  pointer-events: all;
+  margin-top: 10px;
+  background: transparent;
+  border: 1px solid rgba(201,169,110,0.35);
+  color: var(--gold);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 0.15em;
+  padding: 10px 28px;
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 0;
+  animation: fadeIn 2s 3.2s ease forwards;
+  transition: background 0.4s, border-color 0.4s;
+}
+#piano-btn:hover {
+  background: rgba(201,169,110,0.1);
+  border-color: var(--gold);
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* ── Falling words ── */
+.word {
+  position: fixed;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--blush);
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  animation: drift linear forwards;
+  white-space: nowrap;
+}
+
+@keyframes drift {
+  0%   { opacity: 0; transform: translateY(-20px) rotate(var(--r)); }
+  8%   { opacity: var(--op); }
+  88%  { opacity: var(--op); }
+  100% { opacity: 0; transform: translateY(105vh) rotate(calc(var(--r) + var(--sr))); }
+}
+
+/* ── Piano notes ── */
+.note-icon {
+  position: fixed;
+  font-size: 16px;
+  color: rgba(201,169,110,0.5);
+  pointer-events: none;
+  z-index: 11;
+  animation: noteRise 3s ease-out forwards;
+}
+@keyframes noteRise {
+  0%   { opacity: 0; transform: translateY(0) scale(0.7); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-90px) scale(1) rotate(15deg); }
+}
+
+/* ── Click ripple ── */
+.ripple {
+  position: fixed;
+  border-radius: 50%;
+  border: 1px solid rgba(200,113,138,0.5);
+  pointer-events: none;
+  z-index: 60;
+  animation: ripple 0.7s ease-out forwards;
+}
+@keyframes ripple {
+  from { width: 0; height: 0; opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  to   { width: 120px; height: 120px; opacity: 0; transform: translate(-50%,-50%) scale(1); }
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="center">
+  <p class="greeting">Un message pour toi</p>
+  <h1 class="main-phrase">Je t'aime<br><span>infiniment</span></h1>
+  <div class="divider"></div>
+  <p class="sub-phrase">
+    Tu es ma lumière dans l'obscurité,<br>
+    mon refuge, ma paix.<br>
+    <em>I need you. Always.</em>
+  </p>
+  <button id="piano-btn" onclick="toggleMusic()">♩ Écouter la mélodie</button>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  PARTICLE CANVAS – floating petals/stars
+// ════════════════════════════════════════
+const cvs = document.getElementById('canvas');
+const ctx = cvs.getContext('2d');
+let W, H;
+
+function resize() {
+  W = cvs.width  = window.innerWidth;
+  H = cvs.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Particle {
+  constructor() { this.reset(true); }
+  reset(initial = false) {
+    this.x  = Math.random() * W;
+    this.y  = initial ? Math.random() * H : -10;
+    this.r  = Math.random() * 1.8 + 0.4;
+    this.vy = Math.random() * 0.4 + 0.15;
+    this.vx = (Math.random() - 0.5) * 0.3;
+    this.op = Math.random() * 0.5 + 0.1;
+    this.hue = 340 + Math.random() * 25;
+  }
+  update() {
+    this.x += this.vx + Math.sin(Date.now() * 0.0006 + this.x) * 0.18;
+    this.y += this.vy;
+    if (this.y > H + 10) this.reset();
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${this.hue}, 60%, 80%, ${this.op})`;
+    ctx.fill();
+  }
+}
+
+const particles = Array.from({ length: 120 }, () => new Particle());
+
+function loop() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(loop);
+}
+loop();
+
+// ════════════════════════════════════════
+//  FALLING WORDS
+// ════════════════════════════════════════
+const phrases = [
+  'I love you','Je t\'aime','You are my everything',
+  'Mon âme sœur','I need you','Tu me manques',
+  'Forever & always','Mon cœur est à toi',
+  'I adore you','Ma douce','You are enough',
+  'Chaque jour avec toi','My safe place',
+  'Tu es ma vie','Tendrement','Passionnément',
+  'My one and only','Toujours','With you is home',
+  'Mon amour','Je te choisis','Always you',
+  'Deeply yours','Tu es parfait(e)','My forever'
+];
+
+const wordsEl = [];
+
+function spawnWord() {
+  const el = document.createElement('div');
+  el.className = 'word';
+  el.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+  const rot  = (Math.random() * 14 - 7).toFixed(1);
+  const srot = (Math.random() * 10 - 5).toFixed(1);
+  const op   = (Math.random() * 0.35 + 0.2).toFixed(2);
+  const dur  = (Math.random() * 9 + 9).toFixed(1);
+  const fs   = Math.random() * 10 + 13;
+  el.style.cssText = `
+    left: ${Math.random() * 92}%;
+    top: -40px;
+    font-size: ${fs}px;
+    --r: ${rot}deg;
+    --sr: ${srot}deg;
+    --op: ${op};
+    animation-duration: ${dur}s;
+    animation-delay: ${(Math.random() * 2).toFixed(1)}s;
+    letter-spacing: 0.05em;
+  `;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), (parseFloat(dur) + 3) * 1000);
+}
+
+// Stagger initial words then continuous
+for (let i = 0; i < 6; i++) setTimeout(spawnWord, i * 600);
+setInterval(spawnWord, 1100);
+
+// ════════════════════════════════════════
+//  CLICK EFFECTS
+// ════════════════════════════════════════
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'piano-btn') return;
+
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  r.style.cssText = `left:${e.clientX}px;top:${e.clientY}px`;
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 800);
+
+  // Spawn a few words from click point
+  for (let i = 0; i < 3; i++) {
+    const mini = document.createElement('div');
+    mini.className = 'word';
+    mini.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+    const rot = (Math.random() * 20 - 10).toFixed(1);
+    mini.style.cssText = `
+      left: ${e.clientX + (Math.random()*80-40)}px;
+      top: ${e.clientY}px;
+      font-size: ${Math.random()*6+12}px;
+      --r: ${rot}deg;
+      --sr: ${rot}deg;
+      --op: 0.6;
+      animation-duration: 5s;
+      animation-delay: ${i * 0.15}s;
+    `;
+    document.body.appendChild(mini);
+    setTimeout(() => mini.remove(), 6000);
+  }
+});
+
+// ════════════════════════════════════════
+//  PIANO SYNTH
+// ════════════════════════════════════════
+let ac = null, playing = false, timer = null, ni = 0;
+
+// Nocturne-inspired melody
+const score = [
+  [392,0.8],[349,0.4],[329,0.4],[293,0.8],[261,0.8],
+  [293,0.4],[329,0.4],[349,0.8],[392,0.8],
+  [440,0.8],[392,0.4],[349,0.4],[329,1.2],
+  [293,0.8],[261,0.4],[246,0.4],[261,0.8],[293,0.8],
+  [329,0.8],[349,0.4],[392,0.4],[440,1.0],
+  [493,0.8],[440,0.4],[392,0.4],[349,1.6],
+  [329,0.8],[293,0.4],[261,0.4],[246,1.6],
+];
+
+function playNote(freq, dur) {
+  const osc  = ac.createOscillator();
+  const osc2 = ac.createOscillator();
+  const gain = ac.createGain();
+  const now  = ac.currentTime;
+
+  osc.type = 'triangle';
+  osc2.type = 'sine';
+  osc.frequency.value  = freq;
+  osc2.frequency.value = freq * 2.005; // slight detune for warmth
+
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.18, now + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.07, now + dur * 0.5);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + dur + 0.3);
+
+  osc.connect(gain);
+  osc2.connect(gain);
+  gain.connect(ac.destination);
+
+  osc.start(now); osc.stop(now + dur + 0.4);
+  osc2.start(now); osc2.stop(now + dur * 0.6);
+
+  // visual note icon
+  const n = document.createElement('div');
+  n.className = 'note-icon';
+  n.textContent = ['♩','♪','♫','♬'][Math.floor(Math.random()*4)];
+  n.style.cssText = `left:${Math.random()*80+10}%;bottom:${Math.random()*25+5}%`;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3500);
+}
+
+function next() {
+  if (!playing) return;
+  const [f, d] = score[ni % score.length];
+  playNote(f, d * 0.55);
+  ni++;
+  timer = setTimeout(next, d * 560);
+}
+
+function toggleMusic() {
+  const btn = document.getElementById('piano-btn');
+  if (playing) {
+    clearTimeout(timer);
+    playing = false;
+    btn.textContent = '♩ Écouter la mélodie';
+  } else {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    playing = true;
+    btn.textContent = '♪ En cours… (cliquer pour arrêter)';
+    next();
+  }
+}
+</script>
+</body>
+</html>
